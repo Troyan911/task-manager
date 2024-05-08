@@ -14,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
-Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-    return $request->user();
+Route::post('auth', \App\Http\Controllers\Api\AuthController::class)->name('auth');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::apiResource('tasks', \App\Http\Controllers\Api\TaskController::class);
 });

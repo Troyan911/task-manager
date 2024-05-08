@@ -14,8 +14,7 @@ class TaskStatusesSeeder extends Seeder
     public function run(): void
     {
         foreach (TaskStatus::cases() as $case) {
-            TaskStatusModel::create(['name' => $case->value]);
-
+            TaskStatusModel::firstOrCreate(['name' => $case->value]);
         }
     }
 }
