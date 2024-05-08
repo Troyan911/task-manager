@@ -25,13 +25,13 @@ class CreateTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'numeric',  'exists:' . User::class . ',id'],
-            'status_id' => ['required', 'numeric',  'exists:' . TaskStatus::class . ',id'],
+            'user_id' => ['required', 'numeric',  'exists:'.User::class.',id'],
+            'status_id' => ['required', 'numeric',  'exists:'.TaskStatus::class.',id'],
             'parent_id' => ['nullable', 'numeric', 'exists:'.Task::class.',id'],
 
             'title' => ['required', 'string', 'min:2', 'max:255', 'unique:'.Task::class],
             'description' => ['nullable', 'string'],
-            'priority' => ['required','integer', 'between:1,5'],
+            'priority' => ['required', 'integer', 'between:1,5'],
         ];
     }
 }

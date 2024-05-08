@@ -62,6 +62,7 @@ class TaskController extends Controller
     public function update(EditTaskRequest $request, Task $task, TasksRepositoryContract $repository)
     {
         $repository->update($task, $request);
+
         return new TaskResource(Task::find($task->id));
     }
 

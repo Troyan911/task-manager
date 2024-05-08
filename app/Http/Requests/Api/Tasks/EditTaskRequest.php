@@ -2,7 +2,6 @@
 
 namespace App\Http\Requests\Api\Tasks;
 
-use App\Models\Product;
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\User;
@@ -29,13 +28,13 @@ class EditTaskRequest extends FormRequest
         $taskId = $this->route('task')->id;
 
         return [
-            'user_id' => ['required', 'numeric',  'exists:' . User::class . ',id'],
-            'status_id' => ['required', 'numeric',  'exists:' . TaskStatus::class . ',id'],
+            'user_id' => ['required', 'numeric',  'exists:'.User::class.',id'],
+            'status_id' => ['required', 'numeric',  'exists:'.TaskStatus::class.',id'],
             'parent_id' => ['nullable', 'numeric', 'exists:'.Task::class.',id'],
 
             'title' => ['required', 'string', 'min:2', 'max:255', Rule::unique(Task::class, 'title')->ignore($taskId)],
             'description' => ['nullable', 'string'],
-            'priority' => ['required','integer', 'between:1,5'],
+            'priority' => ['required', 'integer', 'between:1,5'],
         ];
     }
 }

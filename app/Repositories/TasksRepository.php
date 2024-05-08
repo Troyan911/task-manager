@@ -9,11 +9,11 @@ use App\Repositories\Contracts\TasksRepositoryContract;
 
 class TasksRepository implements TasksRepositoryContract
 {
-
     public function create(CreateTaskRequest $request): Task|false
     {
         try {
             $data = $request->validated();
+
             return Task::create($data);
         } catch (\Exception $exception) {
             logs()->warning($exception);
@@ -40,10 +40,10 @@ class TasksRepository implements TasksRepositoryContract
     {
         try {
             //todo can't delete
-//            if ($task->childs()->exists()) {
-//                $task->childs()->update(['parent_id' => null]);
-//            }
-//
+            //            if ($task->childs()->exists()) {
+            //                $task->childs()->update(['parent_id' => null]);
+            //            }
+            //
             return $task->deleteOrFail();
         } catch (\Exception $exception) {
             logs()->warning($exception);

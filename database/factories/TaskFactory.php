@@ -36,5 +36,4 @@ class TaskFactory extends Factory
     {
         return $this->state(fn () => ['parent_id' => Task::all()->random()?->id]);
     }
-
 }

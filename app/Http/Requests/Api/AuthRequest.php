@@ -25,7 +25,7 @@ class AuthRequest extends FormRequest
     {
         return
             [
-                'email' => ['required', 'string', 'email', 'max:255', 'exists:' . User::class . ',email'],
+                'email' => ['required', 'string', 'email', 'max:255', 'exists:'.User::class.',email'],
                 'password' => ['required', 'string', Password::defaults()],
             ];
     }

@@ -1,6 +1,5 @@
 <?php
 
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -18,4 +17,5 @@ Route::post('auth', \App\Http\Controllers\Api\AuthController::class)->name('auth
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::apiResource('tasks', \App\Http\Controllers\Api\TaskController::class);
+    Route::patch('task/{task}/done', [\App\Http\Controllers\Api\TaskController::class, 'done']);
 });

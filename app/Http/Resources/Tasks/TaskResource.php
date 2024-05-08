@@ -14,10 +14,10 @@ class TaskResource extends JsonResource
      */
     public function toArray(Request $request): array
     {
-//        $childs = [];
-//        foreach ($this->childs as $child) {
-//            $childs[] = new TaskResource($child);
-//        }
+        //        $childs = [];
+        //        foreach ($this->childs as $child) {
+        //            $childs[] = new TaskResource($child);
+        //        }
 
         return [
             'id' => $this->id,
@@ -25,7 +25,7 @@ class TaskResource extends JsonResource
             'status' => $this->status,
 
             'parent' => new TaskResource($this->parent),
-//            'childs' => $childs,
+            //            'childs' => $childs,
 
             'title' => $this->title,
             'description' => $this->description,

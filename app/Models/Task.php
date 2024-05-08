@@ -21,6 +21,7 @@ class Task extends Model
         'description',
         'priority',
     ];
+
     protected $dates = ['deleted_at'];
 
     public function status(): BelongsTo
