@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\User;
 use Illuminate\Database\Seeder;
-use Illuminate\Support\Facades\DB;
 
 class UsersSeeder extends Seeder
 {
@@ -13,13 +12,17 @@ class UsersSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('users')->delete();
         $adminEmail = env('ADMIN_EMAIL', 'admin@admin.com');
+        $adminEmail2 = env('ADMIN_EMAIL', 'admin2@admin.com');
 
         if (! User::where('email', $adminEmail)->exists()) {
             (User::factory()->withEmail($adminEmail)->create());
         }
 
-        User::factory(4)->create();
+        if (! User::where('email', $adminEmail2)->exists()) {
+            (User::factory()->withEmail($adminEmail2)->create());
+        }
+
+        User::factory(3)->create();
     }
 }

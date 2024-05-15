@@ -21,15 +21,13 @@ class TaskResource extends JsonResource
 
         return [
             'id' => $this->id,
-            'user' => $this->user,
-            'status' => $this->status,
-
-            'parent' => new TaskResource($this->parent),
-            //            'childs' => $childs,
-
             'title' => $this->title,
             'description' => $this->description,
             'priority' => $this->priority,
+
+            'user' => $this->user,
+            'status' => $this->status->name,
+            'parent' => new TaskResource($this->parent),
             'url' => url(route('tasks.show', $this)),
         ];
     }

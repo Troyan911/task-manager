@@ -20,11 +20,12 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         $title = fake()->unique()->words(rand(1, 3), true);
+        $status_id = TaskStatus::toDo()->first()->id;
 
         return [
 
             'user_id' => User::all()->random()?->id,
-            'status_id' => TaskStatus::all()->random()?->id,
+            'status_id' => $status_id,
 
             'title' => $title,
             'description' => fake()->sentence(rand(1, 5), true),
@@ -34,6 +35,23 @@ class TaskFactory extends Factory
 
     public function withParent(): Factory
     {
-        return $this->state(fn () => ['parent_id' => Task::all()->random()?->id]);
+        return $this->state(fn () => [
+            'parent_id' => $parent_id = Task::all()->random()?->id,
+            'user_id' => Task::find($parent_id)->user_id,
+        ]);
+    }
+
+    public function withParentAndRandomStatus(): Factory
+    {
+        return $this->state(fn () => [
+            'parent_id' => $parent_id = Task::all()->random()?->id,
+            'status_id' => TaskStatus::all()->random()?->id,
+            'user_id' => Task::find($parent_id)->user_id,
+        ]);
+    }
+
+    private function getRandomUser()
+    {
+
     }
 }

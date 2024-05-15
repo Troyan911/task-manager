@@ -19,9 +19,8 @@ return new class extends Migration
             $table->string('title');
             $table->text('description')->nullable();
             $table->integer('priority')->nullable();
-            //            $table->boolean('is_deleted')->default(false);
 
-            $table->softDeletes();
+            //            $table->softDeletes();
             $table->timestamps();
         });
     }

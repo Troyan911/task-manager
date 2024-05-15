@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\Enums\TaskStatus as Status;
+use App\Enums\TaskStatus as TaskStatusEnum;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -17,22 +17,17 @@ class TaskStatus extends Model
     public $timestamps = false;
 
     protected $casts = [
-        'name' => Status::class,
+        'name' => TaskStatusEnum::class,
     ];
 
     public function scopeToDo(Builder $query): Builder
     {
-        return $this->statusQuery($query, Status::ToDo);
-    }
-
-    public function scopeInProgress(Builder $query): Builder
-    {
-        return $this->statusQuery($query, Status::InProgress);
+        return $this->statusQuery($query, TaskStatusEnum::ToDo);
     }
 
     public function scopeDone(Builder $query): Builder
     {
-        return $this->statusQuery($query, Status::Done);
+        return $this->statusQuery($query, TaskStatusEnum::Done);
     }
 
     public function tasks(): HasMany
@@ -40,7 +35,7 @@ class TaskStatus extends Model
         return $this->hasMany(Task::class);
     }
 
-    protected function statusQuery(Builder $query, \App\Enums\TaskStatus $status): Builder
+    protected function statusQuery(Builder $query, TaskStatusEnum $status): Builder
     {
         return $query->where('name', $status->value);
     }

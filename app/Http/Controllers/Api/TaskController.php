@@ -8,7 +8,9 @@ use App\Http\Requests\Api\Tasks\EditTaskRequest;
 use App\Http\Resources\Tasks\TaskCollection;
 use App\Http\Resources\Tasks\TaskResource;
 use App\Models\Task;
+use App\Models\TaskStatus;
 use App\Repositories\Contracts\TasksRepositoryContract;
+use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
@@ -20,24 +22,40 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $tasks = Task::with(['parent'])
-            ->whereNull('deleted_at')
-            ->paginate(20);
+        //todo moove to repository
+        $user = auth()->user();
+        $query = $user->tasks()->with('parent', 'status');
 
-        return (new TaskCollection($tasks))
-            ->additional(
-                [
-                    'meta_data' => [
-                        'total' => $tasks->total(),
-                        'per_page' => $tasks->perPage(),
-                        'page' => $tasks->currentPage(),
-                        'to' => $tasks->lastPage(),
-                        'path' => $tasks->path(),
-                        'next' => $tasks->nextPageUrl(),
-                    ],
-                ]);
+        if ($request->has('status')) {
+            $statusId = TaskStatus::where('name', $request->input('status'))->first()->id;
+            $query->byStatus($statusId);
+        }
+
+        if ($request->has('priority')) {
+            $query->byPriority($request->input('priority'));
+        }
+
+        if ($request->has('title')) {
+            $query->fieldContains('title', $request->input('title'));
+        }
+
+        if ($request->has('description')) {
+            $query->fieldContains('description', $request->input('description'));
+        }
+
+        if ($request->has('sort1')) {
+            $query->orderResponseBy($request->input('sort1'), $request->input('dir1'));
+        }
+
+        if ($request->has('sort2')) {
+            $query->orderResponseBy($request->input('sort2'), $request?->input('dir2'));
+        }
+
+        $tasks = $query->get();
+
+        return new TaskCollection($tasks);
     }
 
     /**
@@ -45,6 +63,7 @@ class TaskController extends Controller
      */
     public function store(CreateTaskRequest $request, TasksRepositoryContract $repository)
     {
+
         return new TaskResource($repository->create($request));
     }
 
@@ -53,7 +72,10 @@ class TaskController extends Controller
      */
     public function show(Task $task)
     {
-        return new TaskResource($task);
+        $user_id = auth()->user()->id;
+        $tasks = Task::with('parent', 'status')->where('user_id', $user_id)->findOrFail($task->id);
+
+        return new TaskResource($tasks);
     }
 
     /**
@@ -61,6 +83,7 @@ class TaskController extends Controller
      */
     public function update(EditTaskRequest $request, Task $task, TasksRepositoryContract $repository)
     {
+        $user_id = auth()->user()->id;
         $repository->update($task, $request);
 
         return new TaskResource(Task::find($task->id));
@@ -72,5 +95,12 @@ class TaskController extends Controller
     public function destroy(Task $task, TasksRepositoryContract $repository)
     {
         return $repository->destroy($task);
+    }
+
+    public function done(EditTaskRequest $request, Task $task, TasksRepositoryContract $repository)
+    {
+        $repository->updateWithStatus($task, $request, \App\Models\TaskStatus::done()->first());
+
+        return new TaskResource(Task::find($task->id));
     }
 }
