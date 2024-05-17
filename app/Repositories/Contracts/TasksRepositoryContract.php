@@ -1,16 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Repositories\Contracts;
 
 use App\Http\Requests\Api\Tasks\CreateTaskRequest;
 use App\Http\Requests\Api\Tasks\EditTaskRequest;
 use App\Models\Task;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 
 interface TasksRepositoryContract
 {
+    public function show(Request $request): Collection;
+
     public function create(CreateTaskRequest $request): Task|false;
 
-    public function update(Task $task, EditTaskRequest $request): bool;
+    public function update(Task $task, EditTaskRequest $request): JsonResponse|bool;
 
-    public function destroy(Task $task): bool;
+    public function destroy(Task $task): JsonResponse|bool;
+
+    public function setStatusDone(Task $task): JsonResponse|bool;
 }

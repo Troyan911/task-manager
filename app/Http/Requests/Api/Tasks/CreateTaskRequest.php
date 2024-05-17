@@ -1,10 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Requests\Api\Tasks;
 
 use App\Models\Task;
 use App\Models\TaskStatus;
 use App\Models\User;
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class CreateTaskRequest extends FormRequest
@@ -20,12 +23,12 @@ class CreateTaskRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array|string>
      */
     public function rules(): array
     {
         return [
-            'user_id' => ['required', 'numeric',  'exists:'.User::class.',id'],
+            'user_id' => ['required', 'numeric',  'in:'.auth()->user()->id],
             'status_id' => ['required', 'numeric',  'exists:'.TaskStatus::class.',id'],
             'parent_id' => ['nullable', 'numeric', 'exists:'.Task::class.',id'],
 

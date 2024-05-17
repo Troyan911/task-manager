@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Resources\Tasks;
 
 use Illuminate\Http\Request;
@@ -26,7 +28,9 @@ class TaskResource extends JsonResource
             'priority' => $this->priority,
 
             'user' => $this->user,
+            'user_id' => $this->user->id,
             'status' => $this->status->name,
+            'status_id' => $this->status->id,
             'parent' => new TaskResource($this->parent),
             'url' => url(route('tasks.show', $this)),
         ];

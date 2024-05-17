@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
@@ -8,12 +10,16 @@ use App\Http\Requests\Api\Tasks\EditTaskRequest;
 use App\Http\Resources\Tasks\TaskCollection;
 use App\Http\Resources\Tasks\TaskResource;
 use App\Models\Task;
-use App\Models\TaskStatus;
 use App\Repositories\Contracts\TasksRepositoryContract;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 class TaskController extends Controller
 {
+    /**
+     * Constructor
+     * AuthorizeResource: Task
+     */
     public function __construct()
     {
         $this->authorizeResource(Task::class);
@@ -21,69 +27,134 @@ class TaskController extends Controller
 
     /**
      * Display a listing of the resource.
+     *
+     * @OA\Get(
+     *     path="/tasks",
+     *     operationId="getTasksList",
+     *     tags={"Tasks"},
+     *     summary="Get list of tasks",
+     *     description="Returns a list of tasks",
+     *     security={{"bearerAuth": {}}},
+     *
+     *     @OA\Response(response=200, description="Successful operation")
+     * )
      */
-    public function index(Request $request)
+    public function index(Request $request, TasksRepositoryContract $repository): TaskCollection
     {
-        //todo moove to repository
-        $user = auth()->user();
-        $query = $user->tasks()->with('parent', 'status');
-
-        if ($request->has('status')) {
-            $statusId = TaskStatus::where('name', $request->input('status'))->first()->id;
-            $query->byStatus($statusId);
-        }
-
-        if ($request->has('priority')) {
-            $query->byPriority($request->input('priority'));
-        }
-
-        if ($request->has('title')) {
-            $query->fieldContains('title', $request->input('title'));
-        }
-
-        if ($request->has('description')) {
-            $query->fieldContains('description', $request->input('description'));
-        }
-
-        if ($request->has('sort1')) {
-            $query->orderResponseBy($request->input('sort1'), $request->input('dir1'));
-        }
-
-        if ($request->has('sort2')) {
-            $query->orderResponseBy($request->input('sort2'), $request?->input('dir2'));
-        }
-
-        $tasks = $query->get();
-
-        return new TaskCollection($tasks);
+        return new TaskCollection($repository->show($request));
     }
 
     /**
      * Store a newly created resource in storage.
+     *
+     * @OA\Post(
+     * path="/tasks",
+     * operationId="createTask",
+     * tags={"Tasks"},
+     * summary="Create task entity",
+     * description="Create task entity",
+     * security={{"bearerAuth": {}}},
+     *
+     * @OA\Response(
+     * response=200,
+     * description="Successful operation",
+     *
+     * @OA\JsonContent(ref="#/components/schemas/Task")
+     * ),
+     *
+     * @OA\Response(
+     * response=404,
+     * description="Task not found"
+     * )
+     * )
      */
-    public function store(CreateTaskRequest $request, TasksRepositoryContract $repository)
+    public function store(CreateTaskRequest $request, TasksRepositoryContract $repository): TaskResource
     {
-
         return new TaskResource($repository->create($request));
     }
 
     /**
-     * Display the specified resource.
+     * @OA\Get(
+     *        path="/tasks/{id}",
+     *        operationId="getTask",
+     *        tags={"Tasks"},
+     *        summary="Get task entity",
+     *        description="Get task entity",
+     *        security={{"bearerAuth": {}}},
+     *
+     *        @OA\Parameter(
+     *        name="id",
+     *        in="path",
+     *        description="ID of the task",
+     *        required=true,
+     *
+     *        @OA\Schema(
+     *            type="integer"
+     *        ),
+     *       ),
+     *
+     *       @OA\Response(
+     *           response=200,
+     *           description="Successful operation",
+     *
+     *           @OA\JsonContent(ref="#/components/schemas/Task")
+     *       ),
+     *
+     *       @OA\Response(
+     *           response=404,
+     *           description="Task not found"
+     *       )
+     *   )
      */
-    public function show(Task $task)
+    public function show(Task $task): JsonResponse|TaskResource
     {
-        $user_id = auth()->user()->id;
-        $tasks = Task::with('parent', 'status')->where('user_id', $user_id)->findOrFail($task->id);
+        if (! auth()->user()->tasks()->find($task->id)) {
+            return response()->json(['code' => 404, 'message' => 'Task not found!'], 404);
+        }
 
-        return new TaskResource($tasks);
+        return new TaskResource($task);
     }
 
     /**
      * Update the specified resource in storage.
+     *
+     * @OA\Patch(
+     *       path="/tasks/{id}",
+     *       operationId="updateTask",
+     *       tags={"Tasks"},
+     *       summary="Update task",
+     *       description="Update task",
+     *       security={{"bearerAuth": {}}},
+     *
+     *       @OA\Parameter(
+     *       name="id",
+     *       in="path",
+     *       description="ID of the task",
+     *       required=true,
+     *
+     *       @OA\Schema(
+     *           type="integer"
+     *       ),
+     *      ),
+     *
+     *      @OA\Response(
+     *          response=200,
+     *          description="Successful operation",
+     *
+     *          @OA\JsonContent(ref="#/components/schemas/Task")
+     *      ),
+     *
+     *      @OA\Response(
+     *          response=404,
+     *          description="Task not found"
+     *      )
+     *  )
      */
-    public function update(EditTaskRequest $request, Task $task, TasksRepositoryContract $repository)
+    public function update(EditTaskRequest $request, Task $task, TasksRepositoryContract $repository): JsonResponse|TaskResource
     {
-        $user_id = auth()->user()->id;
+        if (! auth()->user()->tasks()->find($task->id)) {
+            return response()->json(['code' => 404, 'message' => 'Task not found!'], 404);
+        }
         $repository->update($task, $request);
 
         return new TaskResource(Task::find($task->id));
@@ -91,15 +162,88 @@ class TaskController extends Controller
 
     /**
      * Remove the specified resource from storage.
+     *
+     * @OA\Delete(
+     *         path="/tasks/{id}",
+     *         operationId="deleteTask",
+     *         tags={"Tasks"},
+     *         summary="Delete task entity",
+     *         description="Delete task entity",
+     *         security={{"bearerAuth": {}}},
+     *
+     *         @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         description="ID of the task",
+     *         required=true,
+     *
+     *         @OA\Schema(
+     *             type="integer"
+     *         ),
+     *        ),
+     *
+     *        @OA\Response(
+     *            response=200,
+     *            description="Successful operation",
+     *
+     *            @OA\JsonContent(ref="#/components/schemas/Task")
+     *        ),
+     *
+     *        @OA\Response(
+     *            response=404,
+     *            description="Task not found"
+     *        )
+     *    )
      */
-    public function destroy(Task $task, TasksRepositoryContract $repository)
+    public function destroy(Task $task, TasksRepositoryContract $repository): JsonResponse|TaskResource
     {
+        if (! auth()->user()->tasks()->find($task->id)) {
+            return response()->json(['code' => 404, 'message' => 'Task not found!'], 404);
+        }
+
         return $repository->destroy($task);
     }
 
-    public function done(EditTaskRequest $request, Task $task, TasksRepositoryContract $repository)
+    /**
+     * @OA\Patch(
+     *      path="/tasks/{id}/done",
+     *      operationId="setTaskStatusDone",
+     *      tags={"Tasks"},
+     *      summary="Set task status to done",
+     *      description="Set task status to done",
+     *      security={{"bearerAuth": {}}},
+     *
+     *      @OA\Parameter(
+     *      name="id",
+     *      in="path",
+     *      description="ID of the task",
+     *      required=true,
+     *
+     *      @OA\Schema(
+     *          type="integer"
+     *      ),
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=200,
+     *         description="Successful operation",
+     *
+     *         @OA\JsonContent(ref="#/components/schemas/Task")
+     *     ),
+     *
+     *     @OA\Response(
+     *         response=404,
+     *         description="Task not found"
+     *     )
+     * )
+     */
+    public function done(Task $task, TasksRepositoryContract $repository): JsonResponse|TaskResource
     {
-        $repository->updateWithStatus($task, $request, \App\Models\TaskStatus::done()->first());
+        if (! auth()->user()->tasks()->find($task->id)) {
+            return response()->json(['code' => 404, 'message' => 'Task not found!'], 404);
+        }
+
+        $repository->setStatusDone($task);
 
         return new TaskResource(Task::find($task->id));
     }
