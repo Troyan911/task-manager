@@ -4,12 +4,12 @@ declare(strict_types=1);
 
 namespace App\Repositories;
 
-use App\Enums\TaskStatus as TaskStatusEnum;
+use App\Enums\TaskStatus;
 use App\Http\Requests\Api\Tasks\CreateTaskRequest;
 use App\Http\Requests\Api\Tasks\EditTaskRequest;
 use App\Models\Task;
-use App\Models\TaskStatus;
 use App\Repositories\Contracts\TasksRepositoryContract;
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -17,13 +17,14 @@ use Mockery\Exception;
 
 class TasksRepository implements TasksRepositoryContract
 {
-    public function show(Request $request): Collection
+    public function index(Request $request): Collection
     {
-        $query = auth()->user()->tasks()->with('parent', 'status');
+        $query = auth()->user()->tasks()->with('parent');
 
         if ($request->has('status')) {
-            $statusId = TaskStatus::where('name', $request->input('status'))->first()->id;
-            $query->byStatus($statusId);
+            //todo
+            $status = TaskStatus::tryFrom($request->input('status'));
+            $query->byStatus($status);
         }
 
         if ($request->has('priority')) {
@@ -81,7 +82,7 @@ class TasksRepository implements TasksRepositoryContract
     public function destroy(Task $task): JsonResponse|bool
     {
         try {
-            if ($task->status->name == TaskStatusEnum::Done) {
+            if ($task->status === TaskStatus::Done) {
                 return response()->json(['message' => "Can't delete task in status Done!"], 422);
             }
 
@@ -100,11 +101,11 @@ class TasksRepository implements TasksRepositoryContract
         }
     }
 
-    public function setStatusDone(Task $task): JsonResponse|bool
+    public function complete(Task $task): JsonResponse|bool
     {
         try {
-            $status = TaskStatus::done()->first();
-            $task->status_id = $status->id;
+            $task->status = TaskStatus::Done;
+            $task->completed_at = Carbon::now();
             $task->save();
         } catch (Exception $exception) {
             logs()->warning($exception);
@@ -116,7 +117,7 @@ class TasksRepository implements TasksRepositoryContract
     private function hasChildWithStatusDone(Collection $childs): bool
     {
         foreach ($childs as $child) {
-            if ($child->status->name->name == TaskStatusEnum::Done->name) {
+            if ($child->status == TaskStatus::Done) {
                 return true;
             }
 

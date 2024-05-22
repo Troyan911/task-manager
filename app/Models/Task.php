@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\TaskStatus;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -56,18 +57,19 @@ class Task extends Model
 
     protected $fillable = [
         'user_id',
-        'status_id',
+        'status',
         'parent_id',
 
         'title',
         'description',
         'priority',
+        'completed_at'
     ];
 
-    public function status(): BelongsTo
-    {
-        return $this->belongsTo(TaskStatus::class);
-    }
+    protected $casts = [
+        'status' => TaskStatus::class,
+        'completed_at' => 'datetime',
+    ];
 
     public function user(): BelongsTo
     {
@@ -89,7 +91,7 @@ class Task extends Model
      */
     public function scopeByStatus($query, $status)
     {
-        return $query->where('status_id', $status);
+        return $query->where('status', $status);
     }
 
     /**
@@ -114,5 +116,9 @@ class Task extends Model
     public function scopeOrderResponseBy($query, $field, $direction)
     {
         return $query->orderBy($field, $direction ?? 'asc');
+    }
+
+    public function updateCompletedAt() {
+
     }
 }

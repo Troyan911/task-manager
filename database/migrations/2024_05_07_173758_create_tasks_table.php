@@ -13,15 +13,22 @@ return new class extends Migration
     {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users');
-            $table->foreignId('status_id')->constrained('task_statuses');
-            $table->bigInteger('parent_id', unsigned: true)->nullable();
+            $table->unsignedBigInteger('user_id');
+            $table->string('status');
+            $table->unsignedBigInteger('parent_id')->nullable();
             $table->string('title');
             $table->text('description')->nullable();
             $table->integer('priority')->nullable();
 
-            //            $table->softDeletes();
             $table->timestamps();
+            $table->timestamp('completed_at')->nullable();
+
+            $table->fullText('title');
+            $table->fullText('description');
+
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('parent_id')->references('id')->on('tasks')->onDelete('cascade');
+
         });
     }
 

@@ -3,7 +3,7 @@
 namespace Database\Factories;
 
 use App\Models\Task;
-use App\Models\TaskStatus;
+use App\Enums\TaskStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -20,12 +20,12 @@ class TaskFactory extends Factory
     public function definition(): array
     {
         $title = fake()->unique()->words(rand(1, 3), true);
-        $status_id = TaskStatus::toDo()->first()->id;
+        $status = TaskStatus::ToDo;
 
         return [
 
             'user_id' => User::all()->random()?->id,
-            'status_id' => $status_id,
+            'status' => $status,
 
             'title' => $title,
             'description' => fake()->sentence(rand(1, 5), true),
@@ -45,7 +45,7 @@ class TaskFactory extends Factory
     {
         return $this->state(fn () => [
             'parent_id' => $parent_id = Task::all()->random()?->id,
-            'status_id' => TaskStatus::all()->random()?->id,
+            'status' => collect(TaskStatus::cases())->random(),
             'user_id' => Task::find($parent_id)->user_id,
         ]);
     }
