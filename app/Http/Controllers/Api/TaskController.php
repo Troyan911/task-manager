@@ -41,7 +41,7 @@ class TaskController extends Controller
      */
     public function index(Request $request, TasksRepositoryContract $repository): TaskCollection
     {
-        return new TaskCollection($repository->show($request));
+        return new TaskCollection($repository->index($request));
     }
 
     /**
@@ -243,7 +243,7 @@ class TaskController extends Controller
             return response()->json(['code' => 404, 'message' => 'Task not found!'], 404);
         }
 
-        $repository->setStatusDone($task);
+        $repository->complete($task);
 
         return new TaskResource(Task::find($task->id));
     }

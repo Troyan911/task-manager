@@ -4,11 +4,11 @@ declare(strict_types=1);
 
 namespace App\Http\Requests\Api\Tasks;
 
+use App\Enums\TaskStatus;
 use App\Models\Task;
-use App\Models\TaskStatus;
-use App\Models\User;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rules\Enum;
 
 class CreateTaskRequest extends FormRequest
 {
@@ -29,12 +29,13 @@ class CreateTaskRequest extends FormRequest
     {
         return [
             'user_id' => ['required', 'numeric',  'in:'.auth()->user()->id],
-            'status_id' => ['required', 'numeric',  'exists:'.TaskStatus::class.',id'],
+            'status' => ['required', 'string', new Enum(TaskStatus::class)],
             'parent_id' => ['nullable', 'numeric', 'exists:'.Task::class.',id'],
 
             'title' => ['required', 'string', 'min:2', 'max:255', 'unique:'.Task::class],
             'description' => ['nullable', 'string'],
             'priority' => ['required', 'integer', 'between:1,5'],
+            'completed_at' => 'nullable|date'
         ];
     }
 }

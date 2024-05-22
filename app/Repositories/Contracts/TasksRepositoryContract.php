@@ -13,7 +13,7 @@ use Illuminate\Http\Request;
 
 interface TasksRepositoryContract
 {
-    public function show(Request $request): Collection;
+    public function index(Request $request): Collection;
 
     public function create(CreateTaskRequest $request): Task|false;
 
@@ -21,5 +21,5 @@ interface TasksRepositoryContract
 
     public function destroy(Task $task): JsonResponse|bool;
 
-    public function setStatusDone(Task $task): JsonResponse|bool;
+    public function complete(Task $task): JsonResponse|bool;
 }
